@@ -1,0 +1,39 @@
+services:
+  auth_service:
+    build:
+      context: ./microservices/auth_service
+      dockerfile: Dockerfile
+    container_name: auth_service_vlan10
+    volumes:
+      - ./db:/app/db
+    user: "1000:1000"
+    networks:
+      - internal_api_net
+    restart: always
+
+  notifier_service:
+    build:
+      context: ./microservices/notifier_service
+      dockerfile: Dockerfile
+    container_name: notifier_service_vlan10
+    networks:
+      - internal_api_net
+    restart: always
+
+  core_api:
+    build:
+      context: ./CoreAPI
+      dockerfile: Dockerfile
+    container_name: core_api_vlan10
+    ports:
+      - "8080:8080"
+    networks:
+      - internal_api_net
+    depends_on:
+      - auth_service
+      - notifier_service
+    restart: always
+
+networks:
+  internal_api_net:
+    driver: bridge
